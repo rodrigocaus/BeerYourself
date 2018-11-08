@@ -1,4 +1,3 @@
-
 #include <SPI.h>
 #include <MFRC522.h> // See example at https://www.filipeflop.com/blog/controle-acesso-leitor-rfid-arduino/
 #include <LiquidCrystal.h>
@@ -23,7 +22,6 @@ Solenoid s(SOLENOID_PIN);
 
 #define FLOW_PIN A0
 Flow sf(FLOW_PIN);
-
 
 /* TESTING FLOW SENSOR */
 void setup() {
