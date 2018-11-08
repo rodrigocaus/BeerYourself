@@ -1,5 +1,5 @@
-#ifndef flow_h
-#define flow_h
+#ifndef FLOW_HPP
+#define FLOW_HPP
 
 #include <Arduino.h>
 
@@ -15,4 +15,4 @@ public:
 };
 
 
-#endif
+#endif //FLOW_HPP

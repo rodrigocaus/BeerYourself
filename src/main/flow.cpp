@@ -1,6 +1,5 @@
 #include "flow.hpp"
 
-
 bool Flow::get_state() {
 	return (bool) digitalRead(this->pin);
 }
