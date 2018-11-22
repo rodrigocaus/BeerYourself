@@ -36,6 +36,7 @@ void setup() {
 
 	SPI.begin();
 	rfid.PCD_Init();
+	mensageminicial();
 	delay(10);
 }
 
