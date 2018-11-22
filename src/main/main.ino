@@ -18,14 +18,19 @@ MFRC522 rfid(SDA_PIN, RST_PIN);
 LiquidCrystal lcd(RS_LCD_PIN, EN_LCD_PIN, DB4_PIN, DB5_PIN, DB6_PIN, DB7_PIN);
 
 #define SOLENOID_PIN 8
-Solenoid s(SOLENOID_PIN);
+Solenoid valve(SOLENOID_PIN);
 
-#define FLOW_PIN A0
-Flow sf(FLOW_PIN);
+#define FLOW_PIN A1
+Flow sensor_flow(FLOW_PIN);
 
-/* TESTING FLOW SENSOR */
+#define BUTTON_PIN A0
+
+Communicator com;
+
+const float volume_pulse_ratio = 1.0;
+
 void setup() {
-	Serial.begin(9600);
+	com.init();
 	lcd.begin(16,2);
 
 	SPI.begin();
@@ -33,15 +38,104 @@ void setup() {
 	delay(10);
 }
 
+/* TESTING FLOW SENSOR */
+/*
 void loop() {
-	static int count = 0;
-	bool state = sf.get_state();
-	if(state)
-		count++;
+	valve.open();
+	while (1) {
+		static int count = 0;
+		bool state = sensor_flow.get_state();
+		if(state)
+			count++;
 
-	String s = String(state)+" "+String(count);
-	Serial.println(s);
-	lcd.print(s.c_str());
-	lcd.setCursor(0,0);
-	delay(100);
+		String s = String(state)+" "+String(count);
+		Serial.println(s);
+		lcd.print(s.c_str());
+		lcd.setCursor(0,0);
+		delay(100);
+	}
+}
+*/
+
+
+char machine_state = 's';
+
+void loop() {
+
+	if(Serial.available() > 0) {
+		machine_state = (char) Serial.read();
+		lcd.print("Mudanca de estado");
+
+		if(machine_state == 'm' || machine_state == 'M') {
+			lcd.print("EM MANUTENCAO...");
+		}
+	}
+
+
+	switch (machine_state) {
+		case 'm':
+		case 'M':
+			valve.open();
+			delay(1000);
+			break;
+
+		case 's':
+		case 'S':
+		default:
+			// Verifica se ha cartao
+			if ( ! mfrc522.PICC_IsNewCardPresent())
+			{
+				return;
+			}
+			// Le o codigo do cartao
+			if ( ! mfrc522.PICC_ReadCardSerial())
+			{
+				return;
+			}
+
+			String conteudo= "";
+			byte letra;
+			for (byte i = 0; i < mfrc522.uid.size; i++)
+			{
+			 	conteudo.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
+			 	conteudo.concat(String(mfrc522.uid.uidByte[i], HEX));
+			}
+			conteudo.toUpperCase();
+			if (com.authenticate(conteudo.substring(1))) //UID 1 - Chaveiro
+			{
+				lcd.setCursor(0,0);
+				lcd.print("Acesso liberado!");
+				delay(1000);
+				lcd.setCursor(0,0);
+				lcd.print("Pressione o botao");
+				// Espera o botao ser pressionado
+				pulseIn(BUTTON_PIN, HIGH);
+				lcd.setCursor(0,0);
+				lcd.print("Consumo: ");
+				lcd.setCursor(0, 1);
+				unsigned int count_pulses = 0;
+				while (digitalRead(BUTTON_PIN) == HIGH) {
+					if (sensor_flow.get_state()) {
+						count_pulses++;
+					}
+					String vol = String(volume_pulse_ratio*count_pulses) + "ml";
+					lcd.print(vol);
+					// Debouncing delay
+					delay(100);
+				}
+				com.addConsumed(conteudo.substring(1), volume_pulse_ratio*count_pulses);
+				delay(3000);
+				mensageminicial();
+			}
+
+			break;
+	}
+}
+
+void mensageminicial()
+{
+  lcd.clear();
+  lcd.print(" Insira o seu");
+  lcd.setCursor(0,1);
+  lcd.print("cartao no leitor");
 }
