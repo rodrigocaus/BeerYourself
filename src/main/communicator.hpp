@@ -8,6 +8,10 @@ class Communicator {
 		void init();
 		bool authenticate(String id);
 		void addConsumed(String id, int milliliter);
+		String getNameByUUID(String id);
+		String getMlByUUID(String id);
+		bool inMantenance();
+		bool addingUser();
 };
 
 #endif //COMMUNICATOR_HPP
