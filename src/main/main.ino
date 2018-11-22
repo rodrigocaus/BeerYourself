@@ -4,6 +4,7 @@
 
 #include "flow.hpp"
 #include "solenoid.hpp"
+#include "communicator.hpp"
 
 #define SDA_PIN 10
 #define RST_PIN 9
@@ -83,22 +84,22 @@ void loop() {
 		case 'S':
 		default:
 			// Verifica se ha cartao
-			if ( ! mfrc522.PICC_IsNewCardPresent())
+			if ( ! rfid.PICC_IsNewCardPresent())
 			{
 				return;
 			}
 			// Le o codigo do cartao
-			if ( ! mfrc522.PICC_ReadCardSerial())
+			if ( ! rfid.PICC_ReadCardSerial())
 			{
 				return;
 			}
 
 			String conteudo= "";
 			byte letra;
-			for (byte i = 0; i < mfrc522.uid.size; i++)
+			for (byte i = 0; i < rfid.uid.size; i++)
 			{
-			 	conteudo.concat(String(mfrc522.uid.uidByte[i] < 0x10 ? " 0" : " "));
-			 	conteudo.concat(String(mfrc522.uid.uidByte[i], HEX));
+			 	conteudo.concat(String(rfid.uid.uidByte[i] < 0x10 ? " 0" : " "));
+			 	conteudo.concat(String(rfid.uid.uidByte[i], HEX));
 			}
 			conteudo.toUpperCase();
 			if (com.authenticate(conteudo.substring(1))) //UID 1 - Chaveiro
@@ -114,6 +115,7 @@ void loop() {
 				lcd.print("Consumo: ");
 				lcd.setCursor(0, 1);
 				unsigned int count_pulses = 0;
+				valve.open();
 				while (digitalRead(BUTTON_PIN) == HIGH) {
 					if (sensor_flow.get_state()) {
 						count_pulses++;
@@ -123,6 +125,7 @@ void loop() {
 					// Debouncing delay
 					delay(100);
 				}
+				valve.close();
 				com.addConsumed(conteudo.substring(1), volume_pulse_ratio*count_pulses);
 				delay(3000);
 				mensageminicial();
