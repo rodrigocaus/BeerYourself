@@ -182,7 +182,6 @@ def main(cards_file_name="cards.csv", backup_extension=".beerkp"):
             for line in lines:
                 if (line.split(',')[0] == command[1]):
                     new_lines.append(','.join((command[1], str(int(line.split(',')[1])+int(command[2])), line.split(',')[2])))
-                    print(new_lines[-1])
                 else:
                     new_lines.append(line)
 
