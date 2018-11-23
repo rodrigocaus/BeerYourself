@@ -12,6 +12,7 @@ class Communicator {
 		String getMlByUUID(String id);
 		bool inMantenance();
 		bool addingUser();
+		void sendRawUUID(String id);
 };
 
 #endif //COMMUNICATOR_HPP

@@ -14,6 +14,10 @@ bool Communicator::authenticate(String id) {
   return false;
 }
 
+void Communicator::sendRawUUID(String id) {
+  Serial.print(id + "\n");
+}
+
 void Communicator::addConsumed(String id, int milliliter) {
     Serial.print("add_ml," + id + "," + String(milliliter) + "\n");
 }
