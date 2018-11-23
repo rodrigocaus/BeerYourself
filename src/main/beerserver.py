@@ -149,14 +149,14 @@ def main(cards_file_name="cards.csv", backup_extension=".beerkp"):
                 receiver.send("y")
                 print("Please insert card!")
                 UUID = receiver.recv_line()
-                while get_entry_from_DB(UUID) is not None:
+                if get_entry_from_DB(UUID) is not None:
                     print("Please enter a new card!")
-                    UUID = receiver.recv_line()
-                name = input("Enter new user name: ")
-                with open(cards_file_name, "a") as cards_file:
-                    cards_file.write(UUID.strip()+",0,"+name.strip())
-                print("Now press the machine button to end adding!")
-                adding_user = False
+                else:
+                    name = input("Enter new user name: ")
+                    with open(cards_file_name, "a") as cards_file:
+                        cards_file.write(UUID.strip()+",0,"+name.strip())
+                    print("Now press the machine button to end adding!")
+                    adding_user = False
             else:
                 receiver.send("n")
 
