@@ -49,7 +49,7 @@ class Receiver:
     def send(self, message, blocking=False):
         while True:
             try:
-                print("Trying to send: " + message);
+                #print("Trying to send: " + message);
                 return self._serial.write(message.encode("ascii"))
             except serial.SerialTimeoutException:
                 print("Can't send string! Trying again! Are you sure the machine is connected?")
@@ -127,11 +127,12 @@ def main(cards_file_name="cards.csv", backup_extension=".beerkp"):
 
         command = command.split(',')
         command = [x.strip() for x in command]
-        print(command)
 
         # Format: "'check_UUID',(string)UUID"
         if command[0] == "check_UUID":
-            if get_entry_from_DB(command[1]):
+            entry = get_entry_from_DB(command[1])
+            if entry:
+                print(entry.split(',')[2].strip().title() + "'s card with " + entry.split(',')[1] + "ml consumed found!")
                 receiver.send("y")
             else:
                 receiver.send("n")
