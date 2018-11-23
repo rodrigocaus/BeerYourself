@@ -64,7 +64,7 @@ char machine_state = 's';
 
 void loop() {
 
-	if (com.inMantenance()) {
+	if (com.inMaintenance()) {
 		machine_state = 'm';
 		lcd.clear();
 		lcd.print(F("Em manutencao..."));
@@ -76,7 +76,7 @@ void loop() {
 		machine_state = 's';
 	}
 
-
+  String conteudo = "";
 	switch (machine_state) {
 		case 'm':
 		case 'M':
@@ -85,7 +85,7 @@ void loop() {
 			lcd.print(F("Pressione para"));
 			lcd.setCursor(0,1);
 			lcd.print(F("encerrar manutencao"));
-			pulseIn(BUTTON_PIN, HIGH);
+			while (digitalRead(BUTTON_PIN) != HIGH);
 			valve.close();
 			machine_state = 's';
 			mensageminicial();
@@ -93,9 +93,20 @@ void loop() {
 
 		case 'a':
 		case 'A':
-			// Le o codigo do cartao
-			while ( ! rfid.PICC_ReadCardSerial());
-			String conteudo= "";
+      lcd.clear();
+      lcd.print(F("Insira um guizao"));
+
+			// Verifica se ha cartao
+      if ( ! rfid.PICC_IsNewCardPresent())
+      {
+        return;
+      }
+      // Le o codigo do cartao
+      if ( ! rfid.PICC_ReadCardSerial())
+      {
+        return;
+      }
+
 			for (byte i = 0; i < rfid.uid.size; i++)
 			{
 				conteudo.concat(String(rfid.uid.uidByte[i] < 0x10 ? " 0" : " "));
@@ -104,6 +115,8 @@ void loop() {
 			conteudo.toUpperCase();
 			com.sendRawUUID(conteudo.substring(1));
 
+      mensageminicial();
+
 			/*
 			lcd.clear();
 			lcd.print(F("Pressione para"));
@@ -111,6 +124,8 @@ void loop() {
 			lcd.print(F("encerrar cadastro"));
 			pulseIn(BUTTON_PIN, HIGH);
 			*/
+
+      break;
 
 		case 's':
 		case 'S':
@@ -126,36 +141,34 @@ void loop() {
 				return;
 			}
 
-			String conteudo= "";
 			for (byte i = 0; i < rfid.uid.size; i++)
 			{
 			 	conteudo.concat(String(rfid.uid.uidByte[i] < 0x10 ? " 0" : " "));
 			 	conteudo.concat(String(rfid.uid.uidByte[i], HEX));
 			}
 			conteudo.toUpperCase();
-			if (com.authenticate(conteudo.substring(1))) //UID 1 - Chaveiro
+			if (com.authenticate(conteudo.substring(1)))
 			{
-				lcd.setCursor(0,0);
-				lcd.print(F("Acesso liberado!"));
-				delay(1000);
-				lcd.setCursor(0,0);
-				lcd.print(F("Pressione o botao"));
+				lcd.clear();
+				lcd.print(F("Cartao valido!"));
+				delay(2000);
+				lcd.clear();
+				lcd.print(F("Mantenha o botao"));
+        lcd.setCursor(0,1);
+        lcd.print(F("pressionado"));
 				// Espera o botao ser pressionado
-				pulseIn(BUTTON_PIN, HIGH);
+        while (digitalRead(BUTTON_PIN) != HIGH);
 				lcd.setCursor(0,0);
 				lcd.clear();
 				lcd.print(F("Consumo: "));
-				lcd.setCursor(0, 1);
 				unsigned int count_pulses = 0;
 				valve.open();
 				while (digitalRead(BUTTON_PIN) == HIGH) {
-					if (sensor_flow.get_state()) {
-						count_pulses++;
-					}
+					sensor_flow.wait_pulse();
+					count_pulses++;
 					String vol = String(volume_pulse_ratio*count_pulses) + "ml";
-					lcd.print(vol.c_str);
-					// Debouncing delay
-					delay(100);
+          lcd.setCursor(0, 1);
+					lcd.print(vol.c_str());
 				}
 				valve.close();
 				com.addConsumed(conteudo.substring(1), volume_pulse_ratio*count_pulses);
