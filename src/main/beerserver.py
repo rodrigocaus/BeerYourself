@@ -115,22 +115,23 @@ def main(cards_file_name="cards.csv", backup_extension=".beerkp"):
         command = None
         mode = False
         with NonBlockingConsole() as nbc:
-            command = receiver.`recv_line()
-            mode = nbc
+            command = receiver.recv_line()
+            mode = nbc.get_data()
 
-        if mode == "" and command is None:
+        if not mode and command is None:
             continue
         elif mode == "m":
-            is_in_maintenance = True
+            in_maintenance = True
         elif mode == "u":
             adding_user = True
 
-        print("Received: " + command)
         command = command.split(',')
+        command = [x.strip() for x in command]
+        print(command)
 
         # Format: "'check_UUID',(string)UUID"
         if command[0] == "check_UUID":
-            if get_entry_from_DB(uuid):
+            if get_entry_from_DB(command[1]):
                 receiver.send("y")
             else:
                 receiver.send("n")
@@ -148,13 +149,23 @@ def main(cards_file_name="cards.csv", backup_extension=".beerkp"):
             if adding_user:
                 receiver.send("y")
                 print("Please insert card!")
-                UUID = receiver.recv_line()
+                line = receiver.recv_line()
+                user_command = line.split(',')[0]
+                UUID = line.split(',')[1]
+                while user_command != "raw_UUID":
+                    if user_command == "check_adding_user":
+                        receiver.send("y")
+                    else:
+                        receiver.send("n")
+                    line = receiver.recv_line()
+                    user_command = line.split(',')[0]
+                    UUID = line.split(',')[1]
                 if get_entry_from_DB(UUID) is not None:
                     print("Please enter a new card!")
                 else:
                     name = input("Enter new user name: ")
                     with open(cards_file_name, "a") as cards_file:
-                        cards_file.write(UUID.strip()+",0,"+name.strip())
+                        cards_file.write(UUID.strip()+",0,"+name.strip()+'\n')
                     print("Now press the machine button to end adding!")
                     adding_user = False
             else:
@@ -169,7 +180,7 @@ def main(cards_file_name="cards.csv", backup_extension=".beerkp"):
             new_lines = []
             for line in lines:
                 if (line.split(',')[0] == command[1]):
-                    new_lines.append(','.join((command[1], str(int(line.split(',')[1])+int(command[2])))))
+                    new_lines.append(','.join((command[1], str(int(line.split(',')[1])+int(command[2])), line.split(',')[2])))
                     print(new_lines[-1])
                 else:
                     new_lines.append(line)
@@ -181,7 +192,7 @@ def main(cards_file_name="cards.csv", backup_extension=".beerkp"):
 
         # Format: "'get_name',(string)UUID"
         elif command[0] == "get_name":
-            entry = get_entry_from_DB(uuid):
+            entry = get_entry_from_DB(uuid)
             if entry is not None:
                 receiver.send(entry.split(',')[2]+'\n')
             else:
@@ -189,7 +200,7 @@ def main(cards_file_name="cards.csv", backup_extension=".beerkp"):
 
         # Format: "'get_ml',(string)UUID"
         elif command[0] == "get_ml":
-            entry = get_entry_from_DB(uuid):
+            entry = get_entry_from_DB(uuid)
             if entry is not None:
                 receiver.send(entry.split(',')[1]+'\n')
             else:
