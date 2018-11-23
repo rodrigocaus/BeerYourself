@@ -70,6 +70,8 @@ void loop() {
 		lcd.print(F("Em manutencao..."));
 	}
 	else if (com.addingUser()) {
+    lcd.clear();
+    lcd.print(F("Cadastrando..."));
 		machine_state = 'a';
 	}
 	else {
@@ -93,7 +95,6 @@ void loop() {
 
 		case 'a':
 		case 'A':
-      lcd.clear();
 			// Verifica se ha cartao
       if ( ! rfid.PICC_IsNewCardPresent())
       {
