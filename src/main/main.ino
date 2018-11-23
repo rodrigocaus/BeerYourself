@@ -28,7 +28,7 @@ Flow sensor_flow(FLOW_PIN);
 
 Communicator com;
 
-const float volume_pulse_ratio = 1.0;
+const float volume_pulse_ratio = 9.896e-06;
 
 void setup() {
 	com.init();
@@ -94,8 +94,6 @@ void loop() {
 		case 'a':
 		case 'A':
       lcd.clear();
-      lcd.print(F("Insira um guizao"));
-
 			// Verifica se ha cartao
       if ( ! rfid.PICC_IsNewCardPresent())
       {
@@ -161,17 +159,20 @@ void loop() {
 				lcd.setCursor(0,0);
 				lcd.clear();
 				lcd.print(F("Consumo: "));
-				unsigned int count_pulses = 0;
 				valve.open();
+        unsigned long before;
+        String vol_str = "0.0ml";
+        float vol = 0.0;
 				while (digitalRead(BUTTON_PIN) == HIGH) {
+          before = micros();
 					sensor_flow.wait_pulse();
-					count_pulses++;
-					String vol = String(volume_pulse_ratio*count_pulses) + "ml";
           lcd.setCursor(0, 1);
-					lcd.print(vol.c_str());
+					lcd.print(vol_str.c_str());
+          vol += volume_pulse_ratio*(micros()-before) + 53.7e-06;
+          vol_str = String(vol) + "ml";
 				}
 				valve.close();
-				com.addConsumed(conteudo.substring(1), volume_pulse_ratio*count_pulses);
+				com.addConsumed(conteudo.substring(1), vol);
 				delay(3000);
 				mensageminicial();
 			}
