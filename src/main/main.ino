@@ -40,26 +40,6 @@ void setup() {
 	delay(10);
 }
 
-/* TESTING FLOW SENSOR */
-/*
-void loop() {
-	valve.open();
-	while (1) {
-		static int count = 0;
-		bool state = sensor_flow.get_state();
-		if(state)
-			count++;
-
-		String s = String(state)+" "+String(count);
-		Serial.println(s);
-		lcd.print(s.c_str());
-		lcd.setCursor(0,0);
-		delay(100);
-	}
-}
-*/
-
-
 char machine_state = 's';
 
 void loop() {
@@ -115,14 +95,6 @@ void loop() {
 			com.sendRawUUID(conteudo.substring(1));
 
       mensageminicial();
-
-			/*
-			lcd.clear();
-			lcd.print(F("Pressione para"));
-			lcd.setCursor(0,1);
-			lcd.print(F("encerrar cadastro"));
-			pulseIn(BUTTON_PIN, HIGH);
-			*/
 
       break;
 
