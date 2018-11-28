@@ -25,6 +25,9 @@ comanda digital.
 ## Autores
 
  [Guilherme Domingues](https://github.com/guilhermeluisdomingues)
+
  [Henrique Roberto](https://github.com/Riquehr)
+
  [Marco Steck](https://github.com/steckmarco)
+
  [Rodrigo Caus](https://github.com/rodrigocaus)
